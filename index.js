@@ -8,6 +8,7 @@
  const http = require('http');
  const url = require('url');
  const StringDecoder = require('string_decoder').StringDecoder;
+ const confif = require('./config');
 
  // The server should respond to all requests with a string
 
@@ -35,6 +36,7 @@
   req.on('data', function(data){
     buffer += decoder.write(data);
   });
+
   req.on('end', function(){
     buffer += decoder.end();
 
@@ -52,7 +54,7 @@
 
     // Route the request to the handler specified in the router
     choosenHandler(data,function(statusCode,payload){
-      // Use the status code called back by the handler
+      // Use the status code called back by the handler ...
       statusCode = typeof(statusCode) == 'number' ? statusCode : 200;
       // Use the payload called back by the handler, or default to an empty object
       payload = typeof(payload) == 'object' ? payload : {};
@@ -60,6 +62,7 @@
       var payloadString = JSON.stringify(payload);
 
       // Return the response
+      res.setHeader('Content-type','application/json');
       res.writeHead(statusCode);
       res.end(payloadString);
 
