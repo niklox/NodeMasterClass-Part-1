@@ -64,7 +64,7 @@ const commonServer = (req,res)=>{
     buffer += decoder.write(data);
   });
 
-  req.on('end', function(){
+  req.on('end', ()=>{
     buffer += decoder.end();
 
     // Choose the handler this request should go to
@@ -80,7 +80,7 @@ const commonServer = (req,res)=>{
     };
 
     // Route the request to the handler specified in the router
-    choosenHandler(data,function(statusCode,payload){
+    choosenHandler(data,(statusCode,payload)=>{
       // Use the status code called back by the handler ...
       statusCode = typeof(statusCode) == 'number' ? statusCode : 200;
       // Use the payload called back by the handler, or default to an empty object
