@@ -25,7 +25,6 @@ httpServer.listen(config.httpPort,()=>{
 var httpsServerOptions = {
   'key' : fs.readFileSync('./https/key.pem'),
   'cert' : fs.readFileSync('./https/cert.pem')
-
 };
 
  // Instatiate the server
