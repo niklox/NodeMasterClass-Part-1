@@ -18,7 +18,7 @@ const httpServer = http.createServer(function(req,res){
 });
 
 // Start the server, and have it listen to port 3000
-httpServer.listen(config.httpPort,function(){
+httpServer.listen(config.httpPort,()=>{
   console.log("The server is listening on port " + config.httpPort);
 });
 
@@ -29,7 +29,7 @@ var httpsServerOptions = {
 };
 
  // Instatiate the server
- const httpsServer = https.createServer(httpsServerOptions,function(req,res){
+ const httpsServer = https.createServer(httpsServerOptions,(req,res)=>{
    commonServer(req,res);
  });
 
@@ -39,7 +39,7 @@ var httpsServerOptions = {
  });
 
 // All logic in to one function
-const commonServer = function(req,res){
+const commonServer = (req,res)=>{
 
   // Get the URL and parse it
   const parsedUrl = url.parse(req.url, true);
