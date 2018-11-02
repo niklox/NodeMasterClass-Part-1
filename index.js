@@ -13,7 +13,7 @@
  const fs = require('fs');
 
  // Instatiate the server
-const httpServer = http.createServer(function(req,res){
+const httpServer = http.createServer((req,res) => {
   commonServer(req,res);
 });
 
@@ -22,7 +22,7 @@ httpServer.listen(config.httpPort,()=>{
   console.log("The server is listening on port " + config.httpPort);
 });
 
-var httpsServerOptions = {
+const httpsServerOptions = {
   'key' : fs.readFileSync('./https/key.pem'),
   'cert' : fs.readFileSync('./https/cert.pem')
 };
@@ -33,12 +33,12 @@ var httpsServerOptions = {
  });
 
  // Start the server, and have it listen to port 3000
- httpsServer.listen(config.httpsPort,function(){
+ httpsServer.listen(config.httpsPort, () => {
    console.log("The server is listening on port " + config.httpsPort);
  });
 
 // All logic in to one function
-const commonServer = (req,res)=>{
+const commonServer = (req,res) => {
 
   // Get the URL and parse it
   const parsedUrl = url.parse(req.url, true);
@@ -58,22 +58,22 @@ const commonServer = (req,res)=>{
 
   // Get the payload, if any
   const decoder = new StringDecoder('utf-8');
-  var buffer = '';
+  let buffer = '';
   req.on('data', function(data){
     buffer += decoder.write(data);
   });
 
-  req.on('end', ()=>{
+  req.on('end', () => {
     buffer += decoder.end();
 
     // Choose the handler this request should go to
-    var choosenHandler = typeof(router[trimmedPath]) !== 'undefined' ? router[trimmedPath] : handlers.notFound;
+    let choosenHandler = typeof(router[trimmedPath]) !== 'undefined' ? router[trimmedPath] : handlers.notFound;
 
     // Construct the data object to send to the handler
-    var data = {
+    let data = {
       'choosenHandler' : choosenHandler,
       'queryStringObject' : queryStringObject,
-      'meethod' : method,
+      'method' : method,
       'headers' : headers,
       'payload' : buffer
     };
@@ -97,27 +97,25 @@ const commonServer = (req,res)=>{
 
     });
   });
-
-
 };
 
 // Define handlers
 var handlers = {};
 
 // Sample handler
-handlers.sample = function(data,callback){
+handlers.sample = (data,callback) => {
   // callback a http status code and a payload
   callback(406,{'name' : 'sample handler'});
 };
 
 // Hello handler
-handlers.hello = function(data,callback){
+handlers.hello = (data,callback) => {
   // callback a http status code and a payload
-  callback(406,{'name' : 'hello there!'});
+  callback(406,{'name' : 'hello mister I\'m here! and I am waiting...'});
 };
 
 // Not found handler
-handlers.notFound = function(data,callback){
+handlers.notFound = (data,callback) => {
   callback(404);
 };
 
