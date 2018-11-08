@@ -1,7 +1,7 @@
 /*
- *
- * Primary file for https
- *
+ * NodeJS Master Class
+ * Homework assignment #1
+ * @author:Niklas Tidén
  */
 
  // Dependencies
@@ -12,27 +12,51 @@
  const config = require('./config');
  const fs = require('fs');
 
- // Instatiate the server
-const httpServer = http.createServer((req,res) => {
+ // Define handlers
+ let handlers = {};
+
+ // Ping handler
+ handlers.ping = (data,callback) => {
+   callback(200);
+ };
+
+ // Hello handler
+ handlers.hello = (data,callback) => {
+   callback(406,{'name' : 'Hello Mr! I\'m here waiting to serve...'});
+ };
+
+ // Respond to not found requests
+ handlers.notFound = (data,callback) => {
+   callback(404);
+ };
+
+ // Define a request router
+ const router = {
+   'ping' : handlers.ping,
+   'hello' : handlers.hello
+ }
+
+ // Instantiate the server
+ const httpServer = http.createServer((req,res) => {
   commonServer(req,res);
-});
+ });
 
-// Start the server, and have it listen to port 3000
-httpServer.listen(config.httpPort,()=>{
+ // Start the server, and have it listen to the choosen port
+ httpServer.listen(config.httpPort,() => {
   console.log("The server is listening on port " + config.httpPort);
-});
+ });
 
-const httpsServerOptions = {
+ const httpsServerOptions = {
   'key' : fs.readFileSync('./https/key.pem'),
   'cert' : fs.readFileSync('./https/cert.pem')
-};
+ };
 
  // Instatiate the server
- const httpsServer = https.createServer(httpsServerOptions,(req,res)=>{
+ const httpsServer = https.createServer(httpsServerOptions,(req,res) => {
    commonServer(req,res);
  });
 
- // Start the server, and have it listen to port 3000
+ // Start up the server abd have it listen to the choosen port
  httpsServer.listen(config.httpsPort, () => {
    console.log("The server is listening on port " + config.httpsPort);
  });
@@ -43,7 +67,7 @@ const commonServer = (req,res) => {
   // Get the URL and parse it
   const parsedUrl = url.parse(req.url, true);
 
-  // Get the path
+  // Get and trim the path
   const path = parsedUrl.pathname;
   const trimmedPath = path.replace(/^\/+|\/+$/g, '');
 
@@ -56,7 +80,7 @@ const commonServer = (req,res) => {
   // Get the headers as an object
   const headers = req.headers;
 
-  // Get the payload, if any
+  // Get a decoder
   const decoder = new StringDecoder('utf-8');
   let buffer = '';
   req.on('data', function(data){
@@ -66,7 +90,7 @@ const commonServer = (req,res) => {
   req.on('end', () => {
     buffer += decoder.end();
 
-    // Choose the handler this request should go to
+    // Choose the handler
     let choosenHandler = typeof(router[trimmedPath]) !== 'undefined' ? router[trimmedPath] : handlers.notFound;
 
     // Construct the data object to send to the handler
@@ -79,48 +103,22 @@ const commonServer = (req,res) => {
     };
 
     // Route the request to the handler specified in the router
-    choosenHandler(data,(statusCode,payload)=>{
+    choosenHandler(data,(statusCode,payload) => {
       // Use the status code called back by the handler ...
       statusCode = typeof(statusCode) == 'number' ? statusCode : 200;
       // Use the payload called back by the handler, or default to an empty object
       payload = typeof(payload) == 'object' ? payload : {};
-      // Convert the payload to a string
-      var payloadString = JSON.stringify(payload);
+      // Convert the payload
+      let payloadString = JSON.stringify(payload);
 
-      // Return the response
+      // Return the response to clients
       res.setHeader('Content-type','application/json');
       res.writeHead(statusCode);
       res.end(payloadString);
 
-      // Log the request
-      console.log('Returning the response: ',statusCode,payloadString);
+      // Log all requests
+      console.log('Returning response: ',statusCode,payloadString);
 
     });
   });
 };
-
-// Define handlers
-var handlers = {};
-
-// Sample handler
-handlers.sample = (data,callback) => {
-  // callback a http status code and a payload
-  callback(406,{'name' : 'sample handler'});
-};
-
-// Hello handler
-handlers.hello = (data,callback) => {
-  // callback a http status code and a payload
-  callback(406,{'name' : 'hello mister I\'m here! and I am waiting...'});
-};
-
-// Not found handler
-handlers.notFound = (data,callback) => {
-  callback(404);
-};
-
-// Define a request router
-var router = {
-  'sample' : handlers.sample,
-  'hello' : handlers.hello
-}
