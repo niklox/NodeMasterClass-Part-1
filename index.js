@@ -41,27 +41,28 @@
   commonServer(req,res);
  });
 
- // Start the server, and have it listen to the choosen port
+ // Start the http server, and have it listen to the choosen port
  httpServer.listen(config.httpPort,() => {
   console.log("The server is listening on port " + config.httpPort);
  });
 
+ // Put the key and certificate into an object to pass to the https server
  const httpsServerOptions = {
   'key' : fs.readFileSync('./https/key.pem'),
   'cert' : fs.readFileSync('./https/cert.pem')
  };
 
- // Instatiate the server
+ // Instatiate the https server
  const httpsServer = https.createServer(httpsServerOptions,(req,res) => {
    commonServer(req,res);
  });
 
- // Start up the server abd have it listen to the choosen port
+ // Start up the server and have it listen to the choosen port
  httpsServer.listen(config.httpsPort, () => {
    console.log("The server is listening on port " + config.httpsPort);
  });
 
-// All logic in to one function
+// One function that serves http and https requests
 const commonServer = (req,res) => {
 
   // Get the URL and parse it
@@ -91,24 +92,24 @@ const commonServer = (req,res) => {
     buffer += decoder.end();
 
     // Choose the handler
-    let choosenHandler = typeof(router[trimmedPath]) !== 'undefined' ? router[trimmedPath] : handlers.notFound;
+    const handler = typeof(router[trimmedPath]) !== 'undefined' ? router[trimmedPath] : handlers.notFound;
 
-    // Construct the data object to send to the handler
-    let data = {
-      'choosenHandler' : choosenHandler,
+    // Construct a data object to send to the handler
+    const data = {
+      'handler' : handler,
       'queryStringObject' : queryStringObject,
       'method' : method,
       'headers' : headers,
       'payload' : buffer
     };
 
-    // Route the request to the handler specified in the router
-    choosenHandler(data,(statusCode,payload) => {
+    // Route the request
+    handler(data,(statusCode,payload) => {
       // Use the status code called back by the handler ...
       statusCode = typeof(statusCode) == 'number' ? statusCode : 200;
       // Use the payload called back by the handler, or default to an empty object
       payload = typeof(payload) == 'object' ? payload : {};
-      // Convert the payload
+      // Stringify the payload
       let payloadString = JSON.stringify(payload);
 
       // Return the response to clients
